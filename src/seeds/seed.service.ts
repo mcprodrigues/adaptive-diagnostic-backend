@@ -26,7 +26,7 @@ export class SeederService {
   }
 
   async seed() {
-    this.logger.log('Applying seeds...');
+    this.logger.log('Applying KTH IRL seeds...');
 
     await this.dataSource.transaction(async (manager) => {
       await this.seedLevels(manager);
@@ -39,12 +39,14 @@ export class SeederService {
   private async seedLevels(manager: EntityManager) {
     for (const seed of LEVELS_SEEDS) {
       const exists = await this.questionRepository.findLevelByIndex(
+        seed.dimension,
         seed.level_index,
         manager,
       );
       if (exists) continue;
 
       const entity = new LevelEntity();
+      entity.dimension = seed.dimension;
       entity.level_index = seed.level_index;
       entity.name = seed.name;
       entity.description = seed.description;
@@ -56,12 +58,13 @@ export class SeederService {
   private async seedQuestions(manager: EntityManager) {
     for (const seed of QUESTIONS_SEEDS) {
       const level = await this.questionRepository.findLevelByIndex(
+        seed.dimension,
         seed.level_index,
         manager,
       );
       if (!level) {
         this.logger.warn(
-          `Skipping question for level ${seed.level_index} (not seeded).`,
+          `Skipping affirmative for ${seed.dimension} level ${seed.level_index} (level not seeded).`,
         );
         continue;
       }
@@ -76,9 +79,7 @@ export class SeederService {
       const entity = new QuestionEntity();
       entity.level_id = level.id;
       entity.text = seed.text;
-      entity.question_type = seed.question_type;
       entity.order_in_level = seed.order_in_level;
-      entity.options = seed.options;
       entity.validate();
       await this.questionRepository.saveQuestion(entity, manager);
     }

@@ -1,386 +1,270 @@
-import { QuestionType } from 'src/modules/question/enums/question-type.enum';
-import { QuestionOption } from 'src/modules/question/question.entity';
+import { KthDimension } from 'src/modules/question/level.entity';
 
 export interface QuestionSeed {
+  dimension: KthDimension;
   level_index: number;
   order_in_level: number;
   text: string;
-  question_type: QuestionType;
-  options: QuestionOption[];
 }
 
-const yesNo = (passesOnYes = true): QuestionOption[] => [
-  { value: 'yes', label: 'Sim', passes: passesOnYes },
-  { value: 'no', label: 'Não', passes: !passesOnYes },
-];
+const D = KthDimension.CRL;
 
 export const QUESTIONS_SEEDS: QuestionSeed[] = [
-  // --- Nível 1 — Ideação ---
+  // -------------------------------------------------------------------------
+  // CRL 1
+  // -------------------------------------------------------------------------
   {
+    dimension: D,
     level_index: 1,
     order_in_level: 1,
-    text: 'Você consegue descrever em uma frase curta o problema que a startup resolve?',
-    question_type: QuestionType.BOOLEAN,
-    options: yesNo(),
+    text: 'O produto/solução ainda não foi testado, baseia-se numa crença de necessidade do mercado.',
   },
   {
+    dimension: D,
     level_index: 1,
     order_in_level: 2,
-    text: 'O público-alvo (persona) da solução está mapeado e documentado?',
-    question_type: QuestionType.BOOLEAN,
-    options: yesNo(),
+    text: 'As hipóteses de quem seriam seus clientes potenciais ainda não foram validadas.',
   },
   {
+    dimension: D,
     level_index: 1,
     order_in_level: 3,
-    text: 'A equipe fundadora está definida, com papéis atribuídos e dedicação comprometida?',
-    question_type: QuestionType.BOOLEAN,
-    options: yesNo(),
-  },
-  {
-    level_index: 1,
-    order_in_level: 4,
-    text: 'Existe uma proposta de valor escrita (ex.: Value Proposition Canvas, Lean Canvas)?',
-    question_type: QuestionType.BOOLEAN,
-    options: yesNo(),
-  },
-  {
-    level_index: 1,
-    order_in_level: 5,
-    text: 'Os concorrentes diretos e indiretos foram mapeados com diferenciação explícita?',
-    question_type: QuestionType.BOOLEAN,
-    options: yesNo(),
-  },
-  {
-    level_index: 1,
-    order_in_level: 6,
-    text: 'Quantas horas por semana a equipe fundadora dedica ao projeto, em média?',
-    question_type: QuestionType.SCALE,
-    options: [
-      { value: '0-5', label: 'Menos de 5 horas', passes: false },
-      { value: '6-15', label: 'Entre 6 e 15 horas', passes: false },
-      { value: '16-30', label: 'Entre 16 e 30 horas', passes: true },
-      {
-        value: '30+',
-        label: 'Mais de 30 horas (dedicação integral)',
-        passes: true,
-      },
-    ],
-  },
-  {
-    level_index: 1,
-    order_in_level: 7,
-    text: 'As principais hipóteses de negócio (problema, solução, cliente) estão documentadas de forma testável?',
-    question_type: QuestionType.BOOLEAN,
-    options: yesNo(),
+    text: 'A startup ainda tem conhecimento limitado, ou falta de conhecimento sobre o mercado e seus clientes ou usuários potenciais.',
   },
 
-  // --- Nível 2 — Descoberta ---
+  // -------------------------------------------------------------------------
+  // CRL 2
+  // -------------------------------------------------------------------------
   {
+    dimension: D,
     level_index: 2,
     order_in_level: 1,
-    text: 'Quantas entrevistas exploratórias com potenciais clientes já foram realizadas?',
-    question_type: QuestionType.SCALE,
-    options: [
-      { value: '0-5', label: 'Menos de 5', passes: false },
-      { value: '6-15', label: 'Entre 6 e 15', passes: false },
-      { value: '16-40', label: 'Entre 16 e 40', passes: true },
-      { value: '40+', label: 'Mais de 40', passes: true },
-    ],
+    text: 'A startup realizou pesquisas iniciais sobre o mercado, usando dados secundários.',
   },
   {
+    dimension: D,
     level_index: 2,
     order_in_level: 2,
-    text: 'Os Jobs-to-be-Done (tarefas/objetivos que o cliente tenta resolver) estão identificados e priorizados?',
-    question_type: QuestionType.BOOLEAN,
-    options: yesNo(),
+    text: 'A startup sente-se mais familiarizada com o mercado do que no processo de ideação inicial, mas ainda não tem conhecimento profundo deste.',
   },
   {
+    dimension: D,
     level_index: 2,
     order_in_level: 3,
-    text: 'As personas foram validadas com dados reais coletados em entrevistas ou pesquisas?',
-    question_type: QuestionType.BOOLEAN,
-    options: yesNo(),
+    text: 'A startup elaborou uma definição específica do problema ou necessidade que pretende solucionar.',
   },
   {
+    dimension: D,
     level_index: 2,
     order_in_level: 4,
-    text: 'O problema foi validado em pelo menos dois segmentos distintos de clientes?',
-    question_type: QuestionType.BOOLEAN,
-    options: yesNo(),
-  },
-  {
-    level_index: 2,
-    order_in_level: 5,
-    text: 'A dor foi quantificada (frequência com que ocorre, intensidade, custo financeiro ou de tempo)?',
-    question_type: QuestionType.BOOLEAN,
-    options: yesNo(),
-  },
-  {
-    level_index: 2,
-    order_in_level: 6,
-    text: 'Qual a porcentagem aproximada de entrevistados que confirmaram sentir a dor identificada?',
-    question_type: QuestionType.SCALE,
-    options: [
-      { value: '0-25', label: 'Menos de 25%', passes: false },
-      { value: '26-50', label: 'Entre 26% e 50%', passes: false },
-      { value: '51-75', label: 'Entre 51% e 75%', passes: true },
-      { value: '75+', label: 'Mais de 75%', passes: true },
-    ],
-  },
-  {
-    level_index: 2,
-    order_in_level: 7,
-    text: 'Houve pelo menos um pivô ou refinamento relevante da hipótese inicial com base nos aprendizados da descoberta?',
-    question_type: QuestionType.BOOLEAN,
-    options: yesNo(),
+    text: 'Ideias de produtos e soluções existem, mas ainda não foram delimitadas e validadas no mercado.',
   },
 
-  // --- Nível 3 — Validação ---
+  // -------------------------------------------------------------------------
+  // CRL 3
+  // -------------------------------------------------------------------------
   {
+    dimension: D,
     level_index: 3,
     order_in_level: 1,
-    text: 'Existe um MVP ou protótipo funcional sendo usado por usuários reais (mesmo que gratuitos)?',
-    question_type: QuestionType.BOOLEAN,
-    options: yesNo(),
+    text: 'A startup realizou pesquisa sobre o mercado com consulta direta a possíveis usuários/clientes ou pessoas com conhecimento do setor/mercado (dados primários).',
   },
   {
+    dimension: D,
     level_index: 3,
     order_in_level: 2,
-    text: 'Vocês coletam feedback estruturado dos usuários (entrevistas recorrentes, pesquisas, análises de uso)?',
-    question_type: QuestionType.BOOLEAN,
-    options: yesNo(),
-  },
-  {
-    level_index: 3,
-    order_in_level: 3,
-    text: 'Pelo menos uma métrica de ativação/engajamento é acompanhada continuamente?',
-    question_type: QuestionType.BOOLEAN,
-    options: yesNo(),
-  },
-  {
-    level_index: 3,
-    order_in_level: 4,
-    text: 'Quantos usuários ativos mensais (MAU) o MVP possui atualmente?',
-    question_type: QuestionType.SCALE,
-    options: [
-      { value: '0-20', label: 'Até 20', passes: false },
-      { value: '21-100', label: 'Entre 21 e 100', passes: true },
-      { value: '101-500', label: 'Entre 101 e 500', passes: true },
-      { value: '500+', label: 'Mais de 500', passes: true },
-    ],
-  },
-  {
-    level_index: 3,
-    order_in_level: 5,
-    text: 'O perfil dos primeiros adotantes (early adopters) foi identificado a partir de dados reais de uso?',
-    question_type: QuestionType.BOOLEAN,
-    options: yesNo(),
-  },
-  {
-    level_index: 3,
-    order_in_level: 6,
-    text: 'Pelo menos uma das principais hipóteses de solução foi confirmada ou refutada com base no uso real do MVP?',
-    question_type: QuestionType.BOOLEAN,
-    options: yesNo(),
-  },
-  {
-    level_index: 3,
-    order_in_level: 7,
-    text: 'Qual o tempo médio de onboarding (do cadastro à primeira ação de valor) dos novos usuários?',
-    question_type: QuestionType.SCALE,
-    options: [
-      { value: 'none', label: 'Não é medido', passes: false },
-      { value: 'slow', label: 'Mais de 1 semana', passes: false },
-      { value: 'medium', label: 'Entre 1 e 7 dias', passes: true },
-      { value: 'fast', label: 'Menos de 24 horas', passes: true },
-    ],
+    text: 'A startup compreende que possui uma hipótese mais clara acerca do problema que seu produto ou solução pretende resolver, quando comparado aos estágios iniciais de ideação.',
   },
 
-  // --- Nível 4 — Product-Market Fit ---
+  // -------------------------------------------------------------------------
+  // CRL 4
+  // -------------------------------------------------------------------------
   {
+    dimension: D,
     level_index: 4,
     order_in_level: 1,
-    text: 'A retenção de usuários na semana 4 (W4) se mantém acima de 20%?',
-    question_type: QuestionType.BOOLEAN,
-    options: yesNo(),
+    text: 'A startup iniciou contatos e obtenção de feedback com clientes/usuários em potencial.',
   },
   {
+    dimension: D,
     level_index: 4,
     order_in_level: 2,
-    text: 'No Sean Ellis Test ("Como você se sentiria se não pudesse mais usar o produto?"), qual a porcentagem de usuários que responde "muito desapontado"?',
-    question_type: QuestionType.SCALE,
-    options: [
-      { value: 'none', label: 'Não foi aplicado', passes: false },
-      { value: 'low', label: 'Menos de 20%', passes: false },
-      { value: 'mid', label: 'Entre 20% e 40%', passes: true },
-      { value: 'high', label: 'Mais de 40%', passes: true },
-    ],
+    text: 'O problema ou a necessidade dos clientes potenciais foram formalmente confirmadas por múltiplos perfis de usuários.',
   },
   {
+    dimension: D,
     level_index: 4,
     order_in_level: 3,
-    text: 'O NPS (Net Promoter Score) é medido de forma recorrente?',
-    question_type: QuestionType.BOOLEAN,
-    options: yesNo(),
+    text: 'A startup implementou uma segmentação de cliente, possibilitando detalhamento de clientes e usuários potenciais.',
   },
   {
+    dimension: D,
     level_index: 4,
     order_in_level: 4,
-    text: 'Qual é o NPS atual do produto?',
-    question_type: QuestionType.SCALE,
-    options: [
-      { value: 'negative', label: 'Negativo', passes: false },
-      { value: 'low', label: 'Entre 0 e 30', passes: false },
-      { value: 'mid', label: 'Entre 31 e 50', passes: true },
-      { value: 'high', label: 'Acima de 50', passes: true },
-    ],
-  },
-  {
-    level_index: 4,
-    order_in_level: 5,
-    text: 'Existem evidências claras de recomendação orgânica (boca a boca, referrals sem incentivo)?',
-    question_type: QuestionType.BOOLEAN,
-    options: yesNo(),
-  },
-  {
-    level_index: 4,
-    order_in_level: 6,
-    text: 'Pelo menos um canal de aquisição escalável foi identificado e validado (ex.: SEO, paid, comunidade, parcerias)?',
-    question_type: QuestionType.BOOLEAN,
-    options: yesNo(),
-  },
-  {
-    level_index: 4,
-    order_in_level: 7,
-    text: 'Há um ciclo de uso recorrente comprovado (DAU/MAU saudável ou uso semanal sustentado)?',
-    question_type: QuestionType.BOOLEAN,
-    options: yesNo(),
+    text: 'A hipótese primária do produto/solução foi definida nesta fase com base em um feedback de um stakeholder.',
   },
 
-  // --- Nível 5 — Tração ---
+  // -------------------------------------------------------------------------
+  // CRL 5
+  // -------------------------------------------------------------------------
   {
+    dimension: D,
     level_index: 5,
     order_in_level: 1,
-    text: 'A startup possui clientes pagantes recorrentes (assinatura, contrato, mensalidade)?',
-    question_type: QuestionType.BOOLEAN,
-    options: yesNo(),
+    text: 'Confirmada adequação inicial do produto para solução do problema dos clientes em potencial.',
   },
   {
+    dimension: D,
     level_index: 5,
     order_in_level: 2,
-    text: 'Qual é a receita mensal recorrente (MRR) atual?',
-    question_type: QuestionType.SCALE,
-    options: [
-      { value: '0-5k', label: 'Até R$ 5 mil', passes: false },
-      { value: '5k-25k', label: 'Entre R$ 5 mil e R$ 25 mil', passes: true },
-      {
-        value: '25k-100k',
-        label: 'Entre R$ 25 mil e R$ 100 mil',
-        passes: true,
-      },
-      { value: '100k+', label: 'Mais de R$ 100 mil', passes: true },
-    ],
+    text: 'A startup identificou seu cliente-alvo.',
   },
   {
+    dimension: D,
     level_index: 5,
     order_in_level: 3,
-    text: 'Existe um processo comercial repetível e documentado para aquisição de novos clientes?',
-    question_type: QuestionType.BOOLEAN,
-    options: yesNo(),
+    text: 'A startup estudou o perfil do mercado-alvo e possui entendimento deste de forma mais profunda.',
   },
   {
+    dimension: D,
     level_index: 5,
     order_in_level: 4,
-    text: 'O CAC (custo de aquisição) e o LTV (valor vitalício) já foram calculados com base em dados reais?',
-    question_type: QuestionType.BOOLEAN,
-    options: yesNo(),
+    text: 'A startup iniciou processo de fortalecimento e aproximação com clientes em potencial.',
   },
   {
+    dimension: D,
     level_index: 5,
     order_in_level: 5,
-    text: 'Qual é a razão LTV/CAC atual?',
-    question_type: QuestionType.SCALE,
-    options: [
-      { value: 'none', label: 'Ainda não calculamos', passes: false },
-      { value: 'below', label: 'Menor que 3', passes: false },
-      { value: 'mid', label: 'Entre 3 e 5', passes: true },
-      { value: 'high', label: 'Acima de 5', passes: true },
-    ],
+    text: 'Contatos com clientes e consumidores em potencial possibilitaram o fornecimento de requisitos e protótipos iniciais.',
   },
   {
+    dimension: D,
     level_index: 5,
     order_in_level: 6,
-    text: 'O churn mensal é acompanhado e se mantém abaixo de 10% (mensal) para SaaS, ou equivalente para o seu modelo?',
-    question_type: QuestionType.BOOLEAN,
-    options: yesNo(),
-  },
-  {
-    level_index: 5,
-    order_in_level: 7,
-    text: 'Existe um pipeline de vendas estruturado em CRM, com SLAs e estágios bem definidos?',
-    question_type: QuestionType.BOOLEAN,
-    options: yesNo(),
+    text: 'Definida segmentação de mercado-alvo.',
   },
 
-  // --- Nível 6 — Escala ---
+  // -------------------------------------------------------------------------
+  // CRL 6
+  // -------------------------------------------------------------------------
   {
+    dimension: D,
     level_index: 6,
     order_in_level: 1,
-    text: 'A receita cresceu de forma consistente mês sobre mês nos últimos 6 meses?',
-    question_type: QuestionType.BOOLEAN,
-    options: yesNo(),
+    text: 'Os testes de produto têm confirmado a avaliação da proposta de valor do produto e seus benefícios para solução do problema dos usuários.',
   },
   {
+    dimension: D,
     level_index: 6,
     order_in_level: 2,
-    text: 'Qual a taxa média de crescimento mensal (MoM) nos últimos 6 meses?',
-    question_type: QuestionType.SCALE,
-    options: [
-      { value: 'low', label: 'Menos de 5%', passes: false },
-      { value: 'mid', label: 'Entre 5% e 10%', passes: true },
-      { value: 'high', label: 'Entre 10% e 20%', passes: true },
-      { value: 'top', label: 'Acima de 20%', passes: true },
-    ],
+    text: 'Foi firmada parceria com pelo menos um stakeholder-chave da cadeia de valor para a startup.',
   },
   {
+    dimension: D,
     level_index: 6,
     order_in_level: 3,
-    text: 'Quantas pessoas compõem o time hoje (sócios + CLT + PJ)?',
-    question_type: QuestionType.SCALE,
-    options: [
-      { value: '1-5', label: 'Entre 1 e 5', passes: false },
-      { value: '6-15', label: 'Entre 6 e 15', passes: true },
-      { value: '16-50', label: 'Entre 16 e 50', passes: true },
-      { value: '50+', label: 'Mais de 50', passes: true },
-    ],
+    text: 'A startup definiu formalmente um processo/roteiro de vendas.',
   },
   {
+    dimension: D,
     level_index: 6,
     order_in_level: 4,
-    text: 'Existe uma estrutura de gestão financeira com fluxo de caixa projetado, DRE mensal e acompanhamento periódico?',
-    question_type: QuestionType.BOOLEAN,
-    options: yesNo(),
+    text: 'A startup iniciou as atividades de vendas conforme seu processo/roteiro de venda.',
+  },
+
+  // -------------------------------------------------------------------------
+  // CRL 7
+  // -------------------------------------------------------------------------
+  {
+    dimension: D,
+    level_index: 7,
+    order_in_level: 1,
+    text: 'A startup formalizou os primeiros contratos de vendas.',
   },
   {
-    level_index: 6,
+    dimension: D,
+    level_index: 7,
+    order_in_level: 2,
+    text: 'Os primeiros clientes da startup validaram a solução/produto.',
+  },
+  {
+    dimension: D,
+    level_index: 7,
+    order_in_level: 3,
+    text: 'Contamos com clientes e stakeholders relevantes envolvidos na qualificação/testes extensivos do produto.',
+  },
+  {
+    dimension: D,
+    level_index: 7,
+    order_in_level: 4,
+    text: 'A startup tem aumentado os esforços de desenvolvimento de negócios.',
+  },
+  {
+    dimension: D,
+    level_index: 7,
     order_in_level: 5,
-    text: 'A startup captou ou está em processo ativo de captação de investimento (Seed, Série A ou superior)?',
-    question_type: QuestionType.BOOLEAN,
-    options: yesNo(),
+    text: 'A startup tem aumentado os esforços de vendas de acordo com processo estabelecido e roadmap de vendas.',
+  },
+
+  // -------------------------------------------------------------------------
+  // CRL 8
+  // -------------------------------------------------------------------------
+  {
+    dimension: D,
+    level_index: 8,
+    order_in_level: 1,
+    text: 'A startup já identificou o perfil ideal de clientes e realizou algumas vendas.',
   },
   {
-    level_index: 6,
-    order_in_level: 6,
-    text: 'Existem iniciativas estruturadas de expansão (novos mercados geográficos, novos verticais ou novas linhas de produto)?',
-    question_type: QuestionType.BOOLEAN,
-    options: yesNo(),
+    dimension: D,
+    level_index: 8,
+    order_in_level: 2,
+    text: 'O perfil de consumidor para o produto da startup tem capacidade de pagamento para aquisição do produto.',
   },
   {
-    level_index: 6,
-    order_in_level: 7,
-    text: 'Existe uma estrutura de governança (board, conselho consultivo ou comitês) acompanhando a operação?',
-    question_type: QuestionType.BOOLEAN,
-    options: yesNo(),
+    dimension: D,
+    level_index: 8,
+    order_in_level: 3,
+    text: 'O tamanho do mercado para o produto da startup é suficiente para sustentabilidade do negócio.',
+  },
+  {
+    dimension: D,
+    level_index: 8,
+    order_in_level: 4,
+    text: 'A startup identificou o perfil dos compradores reais de sua solução.',
+  },
+  {
+    dimension: D,
+    level_index: 8,
+    order_in_level: 5,
+    text: 'O modelo de gestão da startup tem processos e sistemas definidos e operacionais adequados ao crescimento de vendas e operação.',
+  },
+
+  // -------------------------------------------------------------------------
+  // CRL 9
+  // -------------------------------------------------------------------------
+  {
+    dimension: D,
+    level_index: 9,
+    order_in_level: 1,
+    text: 'A startup definiu o modelo comercial do produto.',
+  },
+  {
+    dimension: D,
+    level_index: 9,
+    order_in_level: 2,
+    text: 'A startup possui portfólio ativo de clientes já fidelizados.',
+  },
+  {
+    dimension: D,
+    level_index: 9,
+    order_in_level: 3,
+    text: 'A startup possui capacidade de crescer e aumentar sua produção, receita ou base de usuários rapidamente, sem aumentar os custos operacionais na mesma proporção.',
+  },
+  {
+    dimension: D,
+    level_index: 9,
+    order_in_level: 4,
+    text: 'A startup está focada em construir sua base de clientes.',
   },
 ];
