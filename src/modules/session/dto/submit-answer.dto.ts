@@ -1,9 +1,9 @@
 import { ApiProperty } from '@nestjs/swagger';
-import { IsInt, IsPositive, IsString, MinLength } from 'class-validator';
+import { IsBoolean, IsInt, IsPositive } from 'class-validator';
 
 export class SubmitAnswerDto {
   @ApiProperty({
-    description: 'ID of the question being answered.',
+    description: 'ID of the affirmative being answered.',
     example: 7,
   })
   @IsInt()
@@ -11,10 +11,10 @@ export class SubmitAnswerDto {
   question_id: number;
 
   @ApiProperty({
-    description: 'Value chosen from the question options.',
-    example: 'yes',
+    description:
+      'Whether the affirmative holds true for the startup ("yes" = true).',
+    example: true,
   })
-  @IsString()
-  @MinLength(1)
-  value: string;
+  @IsBoolean()
+  passed: boolean;
 }
