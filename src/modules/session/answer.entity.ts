@@ -7,10 +7,11 @@ import {
   ManyToOne,
   PrimaryGeneratedColumn,
 } from 'typeorm';
+import { DiagnosisPhase } from './diagnosis-engine';
 import { SessionEntity } from './session.entity';
 
 @Entity('answers')
-@Index(['session_id', 'step'], { unique: true })
+@Index(['session_id', 'question_id'], { unique: true })
 export class AnswerEntity {
   @PrimaryGeneratedColumn()
   id!: number;
@@ -31,8 +32,8 @@ export class AnswerEntity {
   @Column({ name: 'tested_level', type: 'int' })
   tested_level!: number;
 
-  @Column({ type: 'varchar', length: 100 })
-  value!: string;
+  @Column({ name: 'phase_at_answer', type: 'varchar', length: 20 })
+  phase_at_answer!: DiagnosisPhase;
 
   @Column({ type: 'boolean' })
   passed!: boolean;
