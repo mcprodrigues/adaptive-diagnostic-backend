@@ -91,10 +91,8 @@ export class SubmitAnswerUseCase {
 
         // session.answer mutates phase; cast bypasses TS's stale narrowing
         // from the early guard above.
-        const done =
-          (session.phase as DiagnosisPhase) === DiagnosisPhase.COMPLETED;
         let next: Awaited<ReturnType<typeof pickNextQuestion>> = null;
-        if (!done) {
+        if ((session.phase as DiagnosisPhase) !== DiagnosisPhase.COMPLETED) {
           const answeredIds =
             await this.sessionRepository.findAnsweredQuestionIds(
               session.id,
@@ -107,6 +105,14 @@ export class SubmitAnswerUseCase {
             answeredIds,
             manager,
           );
+
+          // In roadmap phase the engine's internal counter can diverge from
+          // reality when the search phase already probed the roadmap level.
+          // Truth is the catalog: no more affirmatives to ask → done.
+          if (!next && session.phase === DiagnosisPhase.ROADMAP) {
+            session.completeRoadmap();
+            await this.sessionRepository.save(session, manager);
+          }
         }
 
         return SessionStepResponse.fromEntity(session, next);

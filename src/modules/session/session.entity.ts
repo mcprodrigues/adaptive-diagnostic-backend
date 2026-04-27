@@ -9,6 +9,7 @@ import {
 import {
   AffirmativesAtLevel,
   applyAnswer,
+  completeRoadmap,
   DiagnosisPhase,
   DiagnosisState,
   DIAGNOSIS_DEFAULTS,
@@ -110,5 +111,9 @@ export class SessionEntity {
   answer(passed: boolean, affirmativesAtLevel: AffirmativesAtLevel): void {
     const next = applyAnswer(this.toState(), { passed }, affirmativesAtLevel);
     this.applyState(next);
+  }
+
+  completeRoadmap(): void {
+    this.applyState(completeRoadmap(this.toState()));
   }
 }

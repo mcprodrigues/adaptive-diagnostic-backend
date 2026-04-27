@@ -97,6 +97,23 @@ export function applyAnswer(
   }
 }
 
+/**
+ * Forces the roadmap phase to complete. Used by the caller when the catalog
+ * (DB) confirms there are no more affirmatives left to ask at the roadmap
+ * level — the engine's internal `roadmapAnswered` counter can diverge from
+ * reality when the search phase already probed (and partially answered) the
+ * would-be roadmap level.
+ */
+export function completeRoadmap(state: DiagnosisState): DiagnosisState {
+  if (state.phase !== DiagnosisPhase.ROADMAP) {
+    throw new AppError('completeRoadmap requires roadmap phase.', 500);
+  }
+  if (state.finalLevel === null) {
+    throw new AppError('completeRoadmap requires a finalLevel.', 500);
+  }
+  return completeDiagnosis(state, state.finalLevel);
+}
+
 // ---------------------------------------------------------------------------
 // Search phase: adaptive midpoint binary search.
 // A level is passed only after every affirmative at that level is answered
