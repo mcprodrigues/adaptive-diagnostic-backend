@@ -1,4 +1,5 @@
 import { Inject, Injectable } from '@nestjs/common';
+import { KthDimension } from '../level.entity';
 import {
   IQuestionRepository,
   QUESTION_REPOSITORY,
@@ -13,7 +14,7 @@ export class FindAllLevelsUseCase {
   ) {}
 
   async execute(): Promise<LevelResponse[]> {
-    const levels = await this.repository.findAllLevels();
+    const levels = await this.repository.findAllLevels(KthDimension.CRL);
     return levels.map((l) => LevelResponse.fromEntity(l));
   }
 }

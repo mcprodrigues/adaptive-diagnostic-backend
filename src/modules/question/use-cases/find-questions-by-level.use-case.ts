@@ -1,5 +1,6 @@
 import { Inject, Injectable } from '@nestjs/common';
 import { NotFoundError } from 'src/shared/errors/not-found-error';
+import { KthDimension } from '../level.entity';
 import {
   IQuestionRepository,
   QUESTION_REPOSITORY,
@@ -14,12 +15,17 @@ export class FindQuestionsByLevelUseCase {
   ) {}
 
   async execute(levelIndex: number): Promise<QuestionResponse[]> {
-    const level = await this.repository.findLevelByIndex(levelIndex);
+    const level = await this.repository.findLevelByIndex(
+      KthDimension.CRL,
+      levelIndex,
+    );
     if (!level) {
       throw new NotFoundError(`Level with index ${levelIndex} not found.`);
     }
-    const questions =
-      await this.repository.findQuestionsByLevelIndex(levelIndex);
+    const questions = await this.repository.findQuestionsByLevelIndex(
+      KthDimension.CRL,
+      levelIndex,
+    );
     return questions.map((q) => QuestionResponse.fromEntity(q));
   }
 }
