@@ -1,29 +1,38 @@
 import {
+  AffirmativesAtLevel,
   applyAnswer,
   DIAGNOSIS_DEFAULTS,
+  DiagnosisPhase,
   DiagnosisState,
   startDiagnosis,
 } from '../diagnosis-engine';
 
-const passN = (state: DiagnosisState, n: number): DiagnosisState => {
+const uniformCatalog = (perLevel: number): AffirmativesAtLevel => () => perLevel;
+
+const passN = (
+  state: DiagnosisState,
+  n: number,
+  catalog: AffirmativesAtLevel,
+): DiagnosisState => {
   let s = state;
-  for (let i = 0; i < n; i++) s = applyAnswer(s, { passed: true });
+  for (let i = 0; i < n; i++) s = applyAnswer(s, { passed: true }, catalog);
   return s;
 };
 
 describe('diagnosis-engine', () => {
   describe('startDiagnosis', () => {
-    it('initializes state with defaults from DIAGNOSIS_DEFAULTS', () => {
-      const declaredLevel = Math.min(3, DIAGNOSIS_DEFAULTS.MAX_LEVEL);
-      const state = startDiagnosis({ declaredLevel });
+    it('initializes with MAX_LEVEL=9 by default', () => {
+      const state = startDiagnosis({ declaredLevel: 5 });
       expect(state).toMatchObject({
-        floor: 0,
-        ceiling: DIAGNOSIS_DEFAULTS.MAX_LEVEL,
-        currentLevel: declaredLevel,
         maxLevel: DIAGNOSIS_DEFAULTS.MAX_LEVEL,
-        questionsPerLevel: DIAGNOSIS_DEFAULTS.QUESTIONS_PER_LEVEL,
+        declaredLevel: 5,
+        floor: 0,
+        ceiling: 9,
+        currentLevel: 5,
         currentLevelAnswered: 0,
-        status: 'in_progress',
+        roadmapLevel: null,
+        roadmapAnswered: 0,
+        phase: DiagnosisPhase.SEARCH,
         finalLevel: null,
       });
     });
@@ -32,205 +41,145 @@ describe('diagnosis-engine', () => {
       expect(() => startDiagnosis({ declaredLevel: 0 })).toThrow(
         /declaredLevel/,
       );
-      expect(() =>
-        startDiagnosis({ declaredLevel: DIAGNOSIS_DEFAULTS.MAX_LEVEL + 1 }),
-      ).toThrow(/declaredLevel/);
+      expect(() => startDiagnosis({ declaredLevel: 10 })).toThrow(
+        /declaredLevel/,
+      );
       expect(() => startDiagnosis({ declaredLevel: 1.5 })).toThrow(
         /declaredLevel/,
       );
     });
 
-    it('accepts custom maxLevel and questionsPerLevel', () => {
-      const state = startDiagnosis({
-        declaredLevel: 2,
-        maxLevel: 9,
-        questionsPerLevel: 18,
-      });
-      expect(state.maxLevel).toBe(9);
-      expect(state.questionsPerLevel).toBe(18);
-      expect(state.ceiling).toBe(9);
+    it('accepts custom maxLevel', () => {
+      const state = startDiagnosis({ declaredLevel: 2, maxLevel: 4 });
+      expect(state.maxLevel).toBe(4);
+      expect(state.ceiling).toBe(4);
     });
   });
 
-  describe('applyAnswer — climbing (all passes)', () => {
-    it('passes 5 at level 3 → floor=3, target=4', () => {
-      let s = startDiagnosis({
-        declaredLevel: 3,
-        maxLevel: 4,
-        questionsPerLevel: 5,
-      });
-      s = passN(s, 5);
-      expect(s.floor).toBe(3);
-      expect(s.ceiling).toBe(4);
-      expect(s.currentLevel).toBe(4);
+  describe('search phase — climbing', () => {
+    it('passes all affirmatives at probed level → narrows floor up', () => {
+      const cat = uniformCatalog(3);
+      let s = startDiagnosis({ declaredLevel: 5, maxLevel: 9 });
+      s = passN(s, 3, cat);
+      // floor=5, ceiling=9, midpoint=(5+1+9)/2=7
+      expect(s.floor).toBe(5);
+      expect(s.ceiling).toBe(9);
+      expect(s.currentLevel).toBe(7);
       expect(s.currentLevelAnswered).toBe(0);
-      expect(s.status).toBe('in_progress');
+      expect(s.phase).toBe(DiagnosisPhase.SEARCH);
     });
 
-    it('passes all 4 levels sequentially → finalLevel=4', () => {
-      let s = startDiagnosis({
-        declaredLevel: 4,
-        maxLevel: 4,
-        questionsPerLevel: 5,
-      });
-      s = passN(s, 5);
-      expect(s.status).toBe('completed');
-      expect(s.finalLevel).toBe(4);
-    });
-
-    it('declares 1 and keeps passing climbs through the midpoints', () => {
-      let s = startDiagnosis({
-        declaredLevel: 1,
-        maxLevel: 4,
-        questionsPerLevel: 5,
-      });
-      s = passN(s, 5);
-      expect(s.floor).toBe(1);
-      expect(s.currentLevel).toBe(3);
-      s = passN(s, 5);
-      expect(s.floor).toBe(3);
+    it('partial passes within a level keep the level open', () => {
+      const cat = uniformCatalog(3);
+      let s = startDiagnosis({ declaredLevel: 4, maxLevel: 9 });
+      s = applyAnswer(s, { passed: true }, cat);
       expect(s.currentLevel).toBe(4);
-      s = passN(s, 5);
-      expect(s.status).toBe('completed');
-      expect(s.finalLevel).toBe(4);
+      expect(s.currentLevelAnswered).toBe(1);
+      expect(s.phase).toBe(DiagnosisPhase.SEARCH);
     });
   });
 
-  describe('applyAnswer — descending (short-circuit on fail)', () => {
-    it('fails immediately at declared level 3 → tests lower midpoint next', () => {
-      let s = startDiagnosis({
-        declaredLevel: 3,
-        maxLevel: 4,
-        questionsPerLevel: 5,
-      });
-      s = applyAnswer(s, { passed: false });
+  describe('search phase — descending', () => {
+    it('a single failure narrows ceiling immediately', () => {
+      const cat = uniformCatalog(3);
+      let s = startDiagnosis({ declaredLevel: 5, maxLevel: 9 });
+      s = applyAnswer(s, { passed: false }, cat);
+      // ceiling=4, floor=0, midpoint=(0+1+4)/2=2
       expect(s.floor).toBe(0);
-      expect(s.ceiling).toBe(2);
-      expect(s.currentLevel).toBe(1);
-      expect(s.currentLevelAnswered).toBe(0);
-      expect(s.status).toBe('in_progress');
-    });
-
-    it('fails at level 1 with floor=0 → finalLevel=0 (below baseline)', () => {
-      let s = startDiagnosis({
-        declaredLevel: 1,
-        maxLevel: 4,
-        questionsPerLevel: 5,
-      });
-      s = applyAnswer(s, { passed: false });
-      expect(s.status).toBe('completed');
-      expect(s.finalLevel).toBe(0);
-    });
-
-    it('declared 3 but real level is 1 — converges', () => {
-      let s = startDiagnosis({
-        declaredLevel: 3,
-        maxLevel: 4,
-        questionsPerLevel: 5,
-      });
-      s = applyAnswer(s, { passed: false });
-      expect(s.currentLevel).toBe(1);
-      s = passN(s, 5);
-      expect(s.floor).toBe(1);
-      expect(s.ceiling).toBe(2);
+      expect(s.ceiling).toBe(4);
       expect(s.currentLevel).toBe(2);
-      s = applyAnswer(s, { passed: false });
-      expect(s.status).toBe('completed');
-      expect(s.finalLevel).toBe(1);
+      expect(s.currentLevelAnswered).toBe(0);
+    });
+
+    it('failing level 1 with floor=0 finishes search at level 0', () => {
+      const cat = uniformCatalog(3);
+      let s = startDiagnosis({ declaredLevel: 1, maxLevel: 9 });
+      s = applyAnswer(s, { passed: false }, cat);
+      // floor=0, ceiling=0 → search done. Roadmap = level 1.
+      expect(s.finalLevel).toBe(0);
+      expect(s.phase).toBe(DiagnosisPhase.ROADMAP);
+      expect(s.roadmapLevel).toBe(1);
     });
   });
 
-  describe('convergence edge cases', () => {
-    it('passes at MAX with ceiling already there → done at MAX', () => {
-      let s = startDiagnosis({
-        declaredLevel: 4,
-        maxLevel: 4,
-        questionsPerLevel: 5,
-      });
-      s = passN(s, 5);
-      expect(s.status).toBe('completed');
-      expect(s.finalLevel).toBe(4);
+  describe('search phase — convergence', () => {
+    it('declared 5, passes 5, fails 7 → converges at 6', () => {
+      const cat = uniformCatalog(3);
+      let s = startDiagnosis({ declaredLevel: 5, maxLevel: 9 });
+      s = passN(s, 3, cat);
+      expect(s.currentLevel).toBe(7);
+      s = applyAnswer(s, { passed: false }, cat);
+      // floor=5, ceiling=6, midpoint=(5+1+6)/2=6
+      expect(s.currentLevel).toBe(6);
+      s = passN(s, 3, cat);
+      // floor=6, ceiling=6 → search done.
+      expect(s.finalLevel).toBe(6);
+      expect(s.phase).toBe(DiagnosisPhase.ROADMAP);
+      expect(s.roadmapLevel).toBe(7);
     });
 
-    it('climbs to 3, then fails 4 → finalLevel=3', () => {
-      let s = startDiagnosis({
-        declaredLevel: 3,
-        maxLevel: 4,
-        questionsPerLevel: 5,
-      });
-      s = passN(s, 5);
-      s = applyAnswer(s, { passed: false });
-      expect(s.status).toBe('completed');
-      expect(s.finalLevel).toBe(3);
+    it('declared 1, passes everything up to MAX_LEVEL → completed without roadmap', () => {
+      const cat = uniformCatalog(3);
+      let s = startDiagnosis({ declaredLevel: 1, maxLevel: 9 });
+      // Climb: 1→5→7→8→9
+      s = passN(s, 3, cat);
+      expect(s.currentLevel).toBe(5);
+      s = passN(s, 3, cat);
+      expect(s.currentLevel).toBe(7);
+      s = passN(s, 3, cat);
+      expect(s.currentLevel).toBe(8);
+      s = passN(s, 3, cat);
+      expect(s.currentLevel).toBe(9);
+      s = passN(s, 3, cat);
+      expect(s.phase).toBe(DiagnosisPhase.COMPLETED);
+      expect(s.finalLevel).toBe(9);
+      expect(s.roadmapLevel).toBeNull();
+    });
+  });
+
+  describe('roadmap phase', () => {
+    it('after convergence, enumerates all affirmatives at finalLevel+1 then completes', () => {
+      const catalog: AffirmativesAtLevel = (level) => (level === 7 ? 5 : 3);
+      let s = startDiagnosis({ declaredLevel: 5, maxLevel: 9 });
+      // Force convergence at level 6: pass 5, fail 7, pass 6.
+      s = passN(s, 3, catalog);
+      s = applyAnswer(s, { passed: false }, catalog);
+      s = passN(s, 3, catalog);
+      expect(s.phase).toBe(DiagnosisPhase.ROADMAP);
+      expect(s.roadmapLevel).toBe(7);
+      expect(s.roadmapAnswered).toBe(0);
+
+      // Now answer all 5 affirmatives of level 7 in the roadmap (mix yes/no
+      // — engine doesn't care about pass/fail in roadmap, only counts).
+      s = applyAnswer(s, { passed: true }, catalog);
+      s = applyAnswer(s, { passed: false }, catalog);
+      s = applyAnswer(s, { passed: false }, catalog);
+      s = applyAnswer(s, { passed: true }, catalog);
+      expect(s.phase).toBe(DiagnosisPhase.ROADMAP);
+      expect(s.roadmapAnswered).toBe(4);
+
+      s = applyAnswer(s, { passed: false }, catalog);
+      expect(s.phase).toBe(DiagnosisPhase.COMPLETED);
+      expect(s.finalLevel).toBe(6);
     });
 
-    it('mixed: declared 2, passes 2, fails 3 → finalLevel=2', () => {
-      let s = startDiagnosis({
-        declaredLevel: 2,
-        maxLevel: 4,
-        questionsPerLevel: 5,
-      });
-      s = passN(s, 5);
-      expect(s.currentLevel).toBe(3);
-      s = applyAnswer(s, { passed: false });
-      expect(s.status).toBe('completed');
-      expect(s.finalLevel).toBe(2);
-    });
-
-    it('mixed: declared 2, passes 2-3-4 → finalLevel=4', () => {
-      let s = startDiagnosis({
-        declaredLevel: 2,
-        maxLevel: 4,
-        questionsPerLevel: 5,
-      });
-      s = passN(s, 5);
-      s = passN(s, 5);
-      s = passN(s, 5);
-      expect(s.status).toBe('completed');
-      expect(s.finalLevel).toBe(4);
+    it('skips roadmap when finalLevel == maxLevel', () => {
+      const cat = uniformCatalog(3);
+      let s = startDiagnosis({ declaredLevel: 9, maxLevel: 9 });
+      s = passN(s, 3, cat);
+      expect(s.phase).toBe(DiagnosisPhase.COMPLETED);
+      expect(s.finalLevel).toBe(9);
+      expect(s.roadmapLevel).toBeNull();
     });
   });
 
   describe('guards', () => {
     it('throws when applying answer to a completed diagnosis', () => {
-      let s = startDiagnosis({
-        declaredLevel: 1,
-        maxLevel: 4,
-        questionsPerLevel: 5,
-      });
-      s = applyAnswer(s, { passed: false });
-      expect(s.status).toBe('completed');
-      expect(() => applyAnswer(s, { passed: true })).toThrow(/completed/);
-    });
-  });
-
-  describe('scales to 9 levels', () => {
-    it('uses binary search midpoint with maxLevel=9', () => {
-      let s = startDiagnosis({
-        declaredLevel: 5,
-        maxLevel: 9,
-        questionsPerLevel: 3,
-      });
-      expect(s.currentLevel).toBe(5);
-      s = passN(s, 3);
-      expect(s.floor).toBe(5);
-      expect(s.currentLevel).toBe(7);
-      s = applyAnswer(s, { passed: false });
-      expect(s.ceiling).toBe(6);
-      expect(s.currentLevel).toBe(6);
-      s = passN(s, 3);
-      expect(s.status).toBe('completed');
-      expect(s.finalLevel).toBe(6);
-    });
-
-    it('maxLevel=9 lower midpoint math sanity', () => {
-      const s = startDiagnosis({
-        declaredLevel: 5,
-        maxLevel: 9,
-        questionsPerLevel: 3,
-      });
-      expect(s.ceiling).toBe(9);
-      expect(s.currentLevel).toBe(5);
+      const cat = uniformCatalog(3);
+      let s = startDiagnosis({ declaredLevel: 9, maxLevel: 9 });
+      s = passN(s, 3, cat);
+      expect(s.phase).toBe(DiagnosisPhase.COMPLETED);
+      expect(() => applyAnswer(s, { passed: true }, cat)).toThrow(/completed/);
     });
   });
 });
