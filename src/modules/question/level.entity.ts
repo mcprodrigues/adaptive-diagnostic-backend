@@ -13,12 +13,25 @@ import {
 import { AppError } from 'src/shared/errors/app-error';
 import { QuestionEntity } from './question.entity';
 
+export const KthDimension = {
+  CRL: 'CRL',
+  TRL: 'TRL',
+  BRL: 'BRL',
+  IPRL: 'IPRL',
+  TMRL: 'TMRL',
+  FRL: 'FRL',
+} as const;
+export type KthDimension = (typeof KthDimension)[keyof typeof KthDimension];
+
 @Entity('levels')
+@Index(['dimension', 'level_index'], { unique: true })
 export class LevelEntity {
   @PrimaryGeneratedColumn()
   id!: number;
 
-  @Index({ unique: true })
+  @Column({ type: 'varchar', length: 10, default: KthDimension.CRL })
+  dimension!: KthDimension;
+
   @Column({ name: 'level_index', type: 'int' })
   level_index!: number;
 
@@ -36,6 +49,7 @@ export class LevelEntity {
 
   validate(): void {
     const errors: string[] = [];
+    if (!isNonEmptyString(this.dimension)) errors.push('dimension is required');
     if (!isPositiveNumber(this.level_index)) {
       errors.push('level_index must be a positive integer');
     }

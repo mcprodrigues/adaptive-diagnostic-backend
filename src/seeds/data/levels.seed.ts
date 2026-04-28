@@ -1,4 +1,7 @@
+import { KthDimension } from 'src/modules/question/level.entity';
+
 export interface LevelSeed {
+  dimension: KthDimension;
   level_index: number;
   name: string;
   description: string;
@@ -6,39 +9,66 @@ export interface LevelSeed {
 
 export const LEVELS_SEEDS: LevelSeed[] = [
   {
+    dimension: KthDimension.CRL,
     level_index: 1,
-    name: 'Ideação',
+    name: 'CRL 1 — Hipóteses sobre o mercado',
     description:
-      'A startup possui uma hipótese clara de problema, equipe fundadora definida, proposta de valor escrita e entendimento inicial do mercado e da concorrência.',
+      'Hipóteses sobre possíveis necessidades no mercado. Ausência de hipóteses claras sobre quem são os clientes e quais problemas resolvem.',
   },
   {
+    dimension: KthDimension.CRL,
     level_index: 2,
-    name: 'Descoberta',
+    name: 'CRL 2 — Necessidades específicas identificadas',
     description:
-      'Processo estruturado de descoberta de cliente: entrevistas exploratórias em volume, jobs-to-be-done identificados, personas validadas com dados reais e problema quantificado.',
+      'Necessidades específicas identificadas no mercado a partir de pesquisa secundária. Descrição mais clara do problema; ideias de solução ainda especulativas.',
   },
   {
+    dimension: KthDimension.CRL,
     level_index: 3,
-    name: 'Validação',
+    name: 'CRL 3 — Primeiro feedback do mercado',
     description:
-      'MVP funcional em uso por usuários reais, coleta contínua de feedback estruturado, métricas de ativação acompanhadas e perfil de early adopters identificado a partir de dados.',
+      'Descoberta inicial de clientes com pesquisa primária junto a possíveis usuários ou especialistas. Hipótese de problema mais clara.',
   },
   {
+    dimension: KthDimension.CRL,
     level_index: 4,
-    name: 'Product-Market Fit',
+    name: 'CRL 4 — Problema confirmado por múltiplos clientes',
     description:
-      'Evidências quantitativas de encaixe produto-mercado: retenção forte, engajamento recorrente, NPS medido, recomendações orgânicas e pelo menos um canal de crescimento identificado.',
+      'Problema/necessidade confirmado por diversos clientes ou usuários. Segmentação implementada e hipótese primária de produto definida.',
   },
   {
+    dimension: KthDimension.CRL,
     level_index: 5,
-    name: 'Tração',
+    name: 'CRL 5 — Interesse e relacionamento estabelecidos',
     description:
-      'Clientes pagantes recorrentes, processo comercial documentado e repetível, unit economics conhecidos (CAC, LTV, churn) e pipeline de vendas estruturado em CRM.',
+      'Interesse estabelecido pelo produto e relacionamento com clientes-alvo. Adequação inicial problema-solução confirmada e segmentação de mercado-alvo definida.',
   },
   {
+    dimension: KthDimension.CRL,
     level_index: 6,
-    name: 'Escala',
+    name: 'CRL 6 — Benefícios confirmados em testes',
     description:
-      'Crescimento consistente mês a mês, time estruturado com governança, captação de investimento em andamento ou concluída e iniciativas ativas de expansão geográfica ou de portfólio.',
+      'Benefícios do produto confirmados em testes com clientes ou parcerias. Processo/roteiro de vendas formalmente definido e iniciado.',
+  },
+  {
+    dimension: KthDimension.CRL,
+    level_index: 7,
+    name: 'CRL 7 — Primeiras vendas e testes extensivos',
+    description:
+      'Clientes em testes extensivos do produto ou primeiras vendas de teste. Esforços de vendas e desenvolvimento de negócios em ramp-up.',
+  },
+  {
+    dimension: KthDimension.CRL,
+    level_index: 8,
+    name: 'CRL 8 — Vendas iniciais estruturadas',
+    description:
+      'Primeiros produtos vendidos e esforços de vendas estruturados. Perfil ideal de cliente, capacidade de pagamento e tamanho de mercado validados.',
+  },
+  {
+    dimension: KthDimension.CRL,
+    level_index: 9,
+    name: 'CRL 9 — Vendas em escala',
+    description:
+      'Vendas generalizadas do produto que escalam. Modelo comercial definido, portfólio de clientes fidelizados e capacidade de crescer mantendo eficiência operacional.',
   },
 ];

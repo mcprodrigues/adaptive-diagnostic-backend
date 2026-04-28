@@ -2,6 +2,7 @@ import { Inject, Injectable, Logger } from '@nestjs/common';
 import { DataSource } from 'typeorm';
 import { AppError } from 'src/shared/errors/app-error';
 import { NotFoundError } from 'src/shared/errors/not-found-error';
+import { KthDimension } from 'src/modules/question/level.entity';
 import {
   IQuestionRepository,
   QUESTION_REPOSITORY,
@@ -11,6 +12,7 @@ import {
   SESSION_REPOSITORY,
 } from '../interfaces/session.repository.port';
 import { AnswerEntity } from '../answer.entity';
+import { DiagnosisPhase } from '../diagnosis-engine';
 import { SubmitAnswerDto } from '../dto/submit-answer.dto';
 import { SessionStepResponse } from '../dto/session-step-response.dto';
 import { pickNextQuestion } from './next-question.helper';
@@ -40,7 +42,7 @@ export class SubmitAnswerUseCase {
         if (!session) {
           throw new NotFoundError(`Session ${sessionId} not found.`);
         }
-        if (session.status === 'completed') {
+        if (session.phase === DiagnosisPhase.COMPLETED) {
           throw new AppError('Session is already completed.', 400);
         }
 
@@ -58,7 +60,7 @@ export class SubmitAnswerUseCase {
           );
         }
 
-        const passed = question.evaluate(data.value);
+        const phaseAtAnswer = session.phase;
         const testedLevel = session.current_level;
         const step =
           (await this.sessionRepository.countAnswersBySessionId(
@@ -66,7 +68,14 @@ export class SubmitAnswerUseCase {
             manager,
           )) + 1;
 
-        session.answer(passed);
+        const counts = await this.questionRepository.countAffirmativesByLevel(
+          KthDimension.CRL,
+          manager,
+        );
+        const affirmativesAtLevel = (level: number): number =>
+          counts.get(level) ?? 0;
+
+        session.answer(data.passed, affirmativesAtLevel);
         await this.sessionRepository.save(session, manager);
 
         const answer = new AnswerEntity();
@@ -74,31 +83,43 @@ export class SubmitAnswerUseCase {
         answer.question_id = question.id;
         answer.step = step;
         answer.tested_level = testedLevel;
-        answer.value = data.value;
-        answer.passed = passed;
+        answer.phase_at_answer = phaseAtAnswer;
+        answer.passed = data.passed;
         answer.floor_after = session.floor;
         answer.ceiling_after = session.ceiling;
         await this.sessionRepository.saveAnswer(answer, manager);
 
-        const done: boolean = (session.status as string) === 'completed';
-        let nextQuestion: Awaited<ReturnType<typeof pickNextQuestion>> = null;
-        if (!done) {
+        // session.answer mutates phase; cast bypasses TS's stale narrowing
+        // from the early guard above.
+        let next: Awaited<ReturnType<typeof pickNextQuestion>> = null;
+        if ((session.phase as DiagnosisPhase) !== DiagnosisPhase.COMPLETED) {
           const answeredIds =
             await this.sessionRepository.findAnsweredQuestionIds(
               session.id,
               manager,
             );
-          nextQuestion = await pickNextQuestion(
+          next = await pickNextQuestion(
             this.questionRepository,
+            KthDimension.CRL,
             session.current_level,
             answeredIds,
+            manager,
           );
+
+          // In roadmap phase the engine's internal counter can diverge from
+          // reality when the search phase already probed the roadmap level.
+          // Truth is the catalog: no more affirmatives to ask → done.
+          if (!next && session.phase === DiagnosisPhase.ROADMAP) {
+            session.completeRoadmap();
+            await this.sessionRepository.save(session, manager);
+          }
         }
 
-        return SessionStepResponse.fromEntity(session, nextQuestion);
+        return SessionStepResponse.fromEntity(session, next);
       });
     } catch (error) {
       if (error instanceof AppError) throw error;
+      if (error instanceof NotFoundError) throw error;
       const err = error as Error;
       this.logger.error(`Error submitting answer: ${err.message}`, err.stack);
       throw new AppError('Internal server error', 500);

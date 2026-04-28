@@ -1,5 +1,6 @@
 import { Inject, Injectable, Logger } from '@nestjs/common';
 import { AppError } from 'src/shared/errors/app-error';
+import { KthDimension } from 'src/modules/question/level.entity';
 import {
   IQuestionRepository,
   QUESTION_REPOSITORY,
@@ -28,13 +29,13 @@ export class StartSessionUseCase {
     try {
       const session = SessionEntity.start(data.declared_level);
       const saved = await this.sessionRepository.save(session);
-      const nextQuestion = await pickNextQuestion(
+      const next = await pickNextQuestion(
         this.questionRepository,
+        KthDimension.CRL,
         saved.current_level,
         [],
       );
-
-      return SessionStepResponse.fromEntity(saved, nextQuestion);
+      return SessionStepResponse.fromEntity(saved, next);
     } catch (error) {
       if (error instanceof AppError) throw error;
       const err = error as Error;
