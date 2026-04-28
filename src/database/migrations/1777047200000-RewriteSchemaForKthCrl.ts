@@ -8,6 +8,11 @@ export class RewriteSchemaForKthCrl1777047200000 implements MigrationInterface {
   name = 'RewriteSchemaForKthCrl1777047200000';
 
   public async up(queryRunner: QueryRunner): Promise<void> {
+    // Ensure uuid-ossp extension exists for uuid_generate_v4()
+    await queryRunner.query(
+      `CREATE EXTENSION IF NOT EXISTS "uuid-ossp"`,
+    );
+
     // Drop everything from the old schema.
     await queryRunner.query(`DROP TABLE IF EXISTS "answers" CASCADE`);
     await queryRunner.query(`DROP TABLE IF EXISTS "questions" CASCADE`);
